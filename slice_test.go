@@ -126,6 +126,20 @@ func TestSlice(t *testing.T) {
 		convey.So(result, convey.ShouldEqual, 13)
 	})
 
+	convey.Convey("Clone", t, func() {
+		s.Clear()
+		s.Append(1)
+		s2 := s.Clone()
+		convey.So(s.Len(), convey.ShouldEqual, s2.Len())
+		s.Append(2)
+		s2.AppendAll(3, 4)
+		convey.So(s.Len(), convey.ShouldEqual, 2)
+		convey.So(s2.Len(), convey.ShouldEqual, 3)
+		s.Get(-1, &result)
+		convey.So(result, convey.ShouldEqual, 2)
+		s2.Get(-1, &result)
+		convey.So(result, convey.ShouldEqual, 4)
+	})
 }
 
 func BenchmarkSlice(b *testing.B) {

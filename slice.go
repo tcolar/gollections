@@ -77,6 +77,13 @@ func (s *Slice) Clear() {
 	s.slice = nil
 }
 
+// Create and return a clone of this slice
+func (s *Slice) Clone() *Slice {
+	clone := NewSlice()
+	clone.slice = append(clone.slice, s.slice)
+	return clone
+}
+
 // Does the slice contain the given element (by equality)
 // Note, this uses simple iteration, use sort methods if meeding more performance
 func (s *Slice) Contains(elem interface{}) bool {
@@ -119,7 +126,7 @@ func (s *Slice) Get(idx int, ptr interface{}) {
 	obj.Set(reflect.Indirect(s.sliceValPtr).Index(idx).Elem())
 }
 
-// Return the (lowest) index of given element (by equality)
+// Return the (lowest) index of given element (using Equals() method)
 // Return -1 if the lement is part of the slice
 // Note, this uses simple iteration, use sort methods if meeding more performance
 func (s *Slice) Index(val interface{}) int {
