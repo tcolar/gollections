@@ -60,6 +60,8 @@ func TestSlice(t *testing.T) {
 		convey.So(s.Contains(999), convey.ShouldEqual, false)
 		convey.So(s.ContainsAll(7, 1, 15), convey.ShouldEqual, true)
 		convey.So(s.ContainsAll(7, 999), convey.ShouldEqual, false)
+		convey.So(s.ContainsAny(99, 7, 15), convey.ShouldEqual, true)
+		convey.So(s.ContainsAll(97, 98, -99), convey.ShouldEqual, false)
 	})
 
 	convey.Convey("Len", t, func() {

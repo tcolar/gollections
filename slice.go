@@ -93,6 +93,16 @@ func (s *Slice) ContainsAll(elems ...interface{}) bool {
 	return true
 }
 
+// Does the slice contain at least one of the given values
+func (s *Slice) ContainsAny(elems ...interface{}) bool {
+	for _, elem := range elems {
+		if s.Contains(elem) {
+			return true
+		}
+	}
+	return false
+}
+
 // Set value of ptr to this slice first element
 func (s *Slice) First(ptr interface{}) {
 	s.Get(0, ptr)
