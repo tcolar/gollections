@@ -140,6 +140,18 @@ func TestSlice(t *testing.T) {
 		s2.Get(-1, &result)
 		convey.So(result, convey.ShouldEqual, 4)
 	})
+	convey.Convey("SliceTo", t, func() {
+		var results []int
+		s.Clear()
+		s.Append(1)
+		s.AppendAll(2, 3, 4)
+		s.SliceTo(&results)
+		log.Print(results)
+		convey.So(results[0], convey.ShouldEqual, 1)
+		convey.So(results[3], convey.ShouldEqual, 4)
+		results[0]++ // this is an actual number now
+		convey.So(results[0], convey.ShouldEqual, 2)
+	})
 }
 
 func BenchmarkSlice(b *testing.B) {

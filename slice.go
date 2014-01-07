@@ -3,6 +3,7 @@
 package goon
 
 import (
+	//"log"
 	"reflect"
 )
 
@@ -110,6 +111,20 @@ func (s *Slice) ContainsAny(elems ...interface{}) bool {
 	return false
 }
 
+// Apply the function to the slice (in order)
+func (s *Slice) Each(f func(interface{})) {
+	for _, e := range s.slice {
+		f(e)
+	}
+}
+
+// Apply the function to the slice (reverse order)
+func (s *Slice) Eachr(f func(interface{})) {
+	for i := len(s.slice) - 1; i >= 0; i++ {
+		f(s.slice[i])
+	}
+}
+
 // Set value of ptr to this slice first element
 func (s *Slice) First(ptr interface{}) {
 	s.Get(0, ptr)
@@ -120,7 +135,7 @@ func (s *Slice) First(ptr interface{}) {
 // ie Get(-1) would return the last element
 func (s *Slice) Get(idx int, ptr interface{}) {
 	if idx < 0 {
-		idx = s.Len() + idx
+		idx = len(s.slice) + idx
 	}
 	obj := reflect.ValueOf(ptr).Elem()
 	obj.Set(reflect.Indirect(s.sliceValPtr).Index(idx).Elem())
@@ -163,15 +178,29 @@ func (s *Slice) Slice() *[]interface{} {
 	return &s.slice
 }
 
+// Export our "generic" slice to a typed slice (say []int)
+// Ptr needs to be a pointer to a slice
+// Note that it can't be a simple cast and instead the data needs to be copied
+// so obviously it's a costly operation.
+func (s *Slice) SliceTo(ptr interface{}) {
+	// Value of the pointer to the target
+	obj := reflect.Indirect(reflect.ValueOf(ptr))
+	// We can't just convert from interface{} to whatever the target is (diff memory layout),
+	// so we need to create a New slice of the proper type and copy the values
+	t := reflect.TypeOf(ptr).Elem()
+	slice := reflect.MakeSlice(t, len(s.slice), len(s.slice))
+	// Copying the data, val is an adressable Pointer of the actual target type
+	val := reflect.Indirect(reflect.New(t.Elem()))
+	for i, _ := range s.slice {
+		v := reflect.ValueOf(s.slice[i])
+		val.Set(v)
+		slice.Index(i).Set(v)
+	}
+	// Ok now assign our slice to the target pointer
+	obj.Set(slice)
+}
+
 // Swap 2 elements (used as impl of sort.Interface)
 func (s *Slice) Swap(a, b int) {
 	s.slice[a], s.slice[b] = s.slice[b], s.slice[a]
 }
-
-/*func (s *Slice) Test(ptr interface{}) {
-  obj := reflect.ValueOf(ptr).Elem()
-  t := reflect.SliceOf(reflect.TypeOf(5))
-  l := reflect.MakeSlice(t, 2, 2)
-  // then fill it
-  obj.Set(reflect.Indirect(l))
-}*/
