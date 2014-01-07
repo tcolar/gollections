@@ -4,43 +4,15 @@ package goon
 
 import (
 	"github.com/smartystreets/goconvey/convey"
-	"log"
+	//"log"
 	"sort"
 	"testing"
 )
 
 func TestSlice(t *testing.T) {
-	// test slice
-	s := NewSlice()
-	s.AppendAll(1, 2, 3)
-	s.Append(7)
-	s.Append(9)
-	s.Append(15)
-
+	s := testSlice()
 	// result target
 	var result int
-
-	convey.Convey("All", t, func() {
-		f1 := func(e interface{}) bool {
-			return e.(int) >= 1
-		}
-		f2 := func(e interface{}) bool {
-			return e.(int) > 5
-		}
-		convey.So(s.All(f1), convey.ShouldEqual, true)
-		convey.So(s.All(f2), convey.ShouldEqual, false)
-	})
-
-	convey.Convey("Any", t, func() {
-		f3 := func(e interface{}) bool {
-			return e.(int) == 7
-		}
-		f4 := func(e interface{}) bool {
-			return e.(int) == 22
-		}
-		convey.So(s.Any(f3), convey.ShouldEqual, true)
-		convey.So(s.Any(f4), convey.ShouldEqual, false)
-	})
 
 	convey.Convey("Get", t, func() {
 		s.Get(2, &result)
@@ -64,10 +36,6 @@ func TestSlice(t *testing.T) {
 		convey.So(s.ContainsAll(97, 98, -99), convey.ShouldEqual, false)
 	})
 
-	convey.Convey("Len", t, func() {
-		convey.So(s.Len(), convey.ShouldEqual, 6)
-	})
-
 	convey.Convey("First & Last", t, func() {
 		s.First(&result)
 		convey.So(result, convey.ShouldEqual, 1)
@@ -75,34 +43,8 @@ func TestSlice(t *testing.T) {
 		convey.So(result, convey.ShouldEqual, 15)
 	})
 
-	convey.Convey("Sort & Search", t, func() {
-		// Example of sorting the slice
-		s.Compare = func(a, b interface{}) int {
-			ai := a.(int)
-			bi := b.(int)
-			if ai == bi {
-				return 0
-			}
-			if ai > bi {
-				return 1
-			}
-			return -1
-		}
-		sort.Sort(s)
-		last := -9999
-		for i := 0; i != s.Len(); i++ {
-			s.Get(i, &result)
-			convey.So(result, convey.ShouldBeGreaterThanOrEqualTo, last)
-			last = result
-		}
-		// Example of using standard search on sorted data
-		i := sort.Search(s.Len(), func(i int) bool {
-			var v int
-			s.Get(i, &v)
-			log.Print(v)
-			return v >= 2 // looking for first index of "2"
-		})
-		convey.So(i, convey.ShouldEqual, 1) // should be the second element
+	convey.Convey("Len", t, func() {
+		convey.So(s.Len(), convey.ShouldEqual, 6)
 	})
 
 	convey.Convey("Clear", t, func() {
@@ -140,17 +82,98 @@ func TestSlice(t *testing.T) {
 		s2.Get(-1, &result)
 		convey.So(result, convey.ShouldEqual, 4)
 	})
-	convey.Convey("SliceTo", t, func() {
+	convey.Convey("To", t, func() {
 		var results []int
 		s.Clear()
 		s.Append(1)
 		s.AppendAll(2, 3, 4)
-		s.SliceTo(&results)
-		log.Print(results)
+		s.To(&results)
+		convey.So(len(results), convey.ShouldEqual, 4)
 		convey.So(results[0], convey.ShouldEqual, 1)
 		convey.So(results[3], convey.ShouldEqual, 4)
 		results[0]++ // this is an actual number now
 		convey.So(results[0], convey.ShouldEqual, 2)
+		s.ToSub(&results, 1, 2)
+		convey.So(len(results), convey.ShouldEqual, 2)
+		convey.So(results[0], convey.ShouldEqual, 2)
+		convey.So(results[1], convey.ShouldEqual, 3)
+		s.ToSub(&results, -3, -1)
+		convey.So(len(results), convey.ShouldEqual, 3)
+		convey.So(results[0], convey.ShouldEqual, 2)
+		convey.So(results[2], convey.ShouldEqual, 4)
+	})
+}
+
+// Test for methods that take functions
+func TestSliceFuncs(t *testing.T) {
+	s := testSlice()
+
+	convey.Convey("All", t, func() {
+		f1 := func(e interface{}) bool {
+			return e.(int) >= 1
+		}
+		f2 := func(e interface{}) bool {
+			return e.(int) > 5
+		}
+		convey.So(s.All(f1), convey.ShouldEqual, true)
+		convey.So(s.All(f2), convey.ShouldEqual, false)
+	})
+
+	convey.Convey("Any", t, func() {
+		f3 := func(e interface{}) bool {
+			return e.(int) == 7
+		}
+		f4 := func(e interface{}) bool {
+			return e.(int) == 22
+		}
+		convey.So(s.Any(f3), convey.ShouldEqual, true)
+		convey.So(s.Any(f4), convey.ShouldEqual, false)
+	})
+
+	convey.Convey("Any", t, func() {
+		f3 := func(e interface{}) bool {
+			return e.(int) == 7
+		}
+		f4 := func(e interface{}) bool {
+			return e.(int) == 22
+		}
+		convey.So(s.Any(f3), convey.ShouldEqual, true)
+		convey.So(s.Any(f4), convey.ShouldEqual, false)
+	})
+
+}
+
+func TestSliceSearch(t *testing.T) {
+	s := testSlice()
+
+	convey.Convey("Sort & Search", t, func() {
+		// Example of sorting the slice
+		s.Compare = func(a, b interface{}) int {
+			ai := a.(int)
+			bi := b.(int)
+			if ai == bi {
+				return 0
+			}
+			if ai > bi {
+				return 1
+			}
+			return -1
+		}
+		sort.Sort(s)
+		last := -9999
+		var result int
+		for i := 0; i != s.Len(); i++ {
+			s.Get(i, &result)
+			convey.So(result, convey.ShouldBeGreaterThanOrEqualTo, last)
+			last = result
+		}
+		// Example of using standard search on sorted data
+		i := sort.Search(s.Len(), func(i int) bool {
+			var v int
+			s.Get(i, &v)
+			return v >= 2 // looking for first index of "2"
+		})
+		convey.So(i, convey.ShouldEqual, 1) // should be the second element
 	})
 }
 
@@ -158,7 +181,25 @@ func BenchmarkSlice(b *testing.B) {
 	s := NewSlice()
 	var result int
 	for i := 0; i < b.N; i++ {
-		s.Append(7)
+		s.Append(i)
 		s.Last(&result)
 	}
+}
+
+func BenchmarkSliceTo(b *testing.B) {
+	s := NewSlice()
+	var results []int
+	for i := 0; i < b.N; i++ {
+		s.Append(7)
+		s.To(&results) // slow for large slices
+	}
+}
+
+func testSlice() *Slice {
+	s := NewSlice()
+	s.AppendAll(1, 2, 3)
+	s.Append(7)
+	s.Append(9)
+	s.Append(15)
+	return s
 }

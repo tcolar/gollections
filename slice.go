@@ -1,27 +1,28 @@
-// History: Jan 04 14 tcolar Creation
+// History: Jan 04 14 Thibaut Colar Creation
 
 package goon
 
 import (
-	//"log"
+	"log"
 	"reflect"
 )
 
 // Custom "Generic" (Sorta) slice
 // Note: Satisfies sort.Interface so can use sort, search etc...
 type Slice struct {
-	// A comparator function. Returns 0 if a==b; -1 if a < b; 1 if a>b
-	// **NOT INITIALIZED**, must be set for sorting to work
-	Compare func(a, b interface{}) int
-
-	// Returns whether two items are equal
-	// Default imlementation uses reflect.DeepEqual
-	Equals func(a, b interface{}) bool
 
 	// internal slice that hold the objects
 	slice []interface{}
 	// value of pointer to slice
 	sliceValPtr reflect.Value
+
+	// Returns whether two items are equal
+	// Default imlementation uses reflect.DeepEqual
+	Equals func(a, b interface{}) bool
+
+	// Optional comparator function, must return 0 if a==b; -1 if a < b; 1 if a>b
+	// **Nil by default** but must be defined for sorting to work.
+	Compare func(a, b interface{}) int
 }
 
 // Initialize a new empty slice
@@ -166,14 +167,14 @@ func (s *Slice) Len() int {
 
 // Check if a < b (used as impl of sort.Interface)
 // S.Compare must be defined !
-func (s Slice) Less(a, b int) bool {
+func (s *Slice) Less(a, b int) bool {
 	if s.Compare == nil {
 		panic("Slice.Compare function was not implemented !")
 	}
 	return s.Compare(s.slice[a], s.slice[b]) == -1
 }
 
-// Returns pointer to the underlying slice ([]interface{})
+// Returns pointer to the raw underlying slice ([]interface{})
 func (s *Slice) Slice() *[]interface{} {
 	return &s.slice
 }
@@ -181,20 +182,37 @@ func (s *Slice) Slice() *[]interface{} {
 // Export our "generic" slice to a typed slice (say []int)
 // Ptr needs to be a pointer to a slice
 // Note that it can't be a simple cast and instead the data needs to be copied
-// so obviously it's a costly operation.
-func (s *Slice) SliceTo(ptr interface{}) {
+// so it's definitely a VERY costly operation.
+func (s *Slice) To(ptr interface{}) {
+	s.ToSub(ptr, 0, len(s.slice)-1)
+}
+
+// Same as To() but only get a subset of the slice
+// Note that from and to can use negative index to indicate "from the end"
+func (s *Slice) ToSub(ptr interface{}, from, to int) {
+	l := len(s.slice)
+	if from < 0 {
+		from = l + from
+	}
+	if to < 0 {
+		to = l + to
+	}
+	if to < from || from < 0 || to > l-1 {
+		log.Fatalf("ToSub: Indexes(%d:%d) out of range(0:%d)", from, to, l-1)
+	}
+
 	// Value of the pointer to the target
 	obj := reflect.Indirect(reflect.ValueOf(ptr))
 	// We can't just convert from interface{} to whatever the target is (diff memory layout),
-	// so we need to create a New slice of the proper type and copy the values
+	// so we need to create a New slice of the proper type and copy the values individually
 	t := reflect.TypeOf(ptr).Elem()
-	slice := reflect.MakeSlice(t, len(s.slice), len(s.slice))
+	slice := reflect.MakeSlice(t, to-from+1, to-from+1)
 	// Copying the data, val is an adressable Pointer of the actual target type
 	val := reflect.Indirect(reflect.New(t.Elem()))
-	for i, _ := range s.slice {
+	for i := from; i <= to; i++ {
 		v := reflect.ValueOf(s.slice[i])
 		val.Set(v)
-		slice.Index(i).Set(v)
+		slice.Index(i - from).Set(v)
 	}
 	// Ok now assign our slice to the target pointer
 	obj.Set(slice)
