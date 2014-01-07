@@ -63,7 +63,7 @@ func (s *Slice) AppendAll(more ...interface{}) {
 	s.slice = append(s.slice, more...)
 }
 
-// Append a goon.Slice to this slice
+// Append another goon.Slice to this slice
 func (s *Slice) AppendSlice(slice *Slice) {
 	s.slice = append(s.slice, slice.slice...)
 }
@@ -112,18 +112,46 @@ func (s *Slice) ContainsAny(elems ...interface{}) bool {
 	return false
 }
 
-// Apply the function to the slice (in order)
-func (s *Slice) Each(f func(interface{})) {
-	for _, e := range s.slice {
-		f(e)
+// Apply the function to the whole slice (in order)
+// If the function returns true (stop), iteration will stop
+func (s *Slice) Each(f func(int, interface{}) (stop bool)) {
+	s.EachRange(0, len(s.slice)-1, f)
+}
+
+// Apply the function to the slice range
+// if from is < to it will be called in reversed order
+// If the function returns true (stop), iteration will stop
+func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
+	l := len(s.slice)
+	// Deal with negative indexes
+	if from < 0 {
+		from = l + from
+	}
+	if to < 0 {
+		to = l + to
+	}
+	// Figure if we are to step forward or backwars
+	step := 1
+	steps := to - from
+	if from > to {
+		step = -1
+		steps = -steps
+	}
+	var stop bool
+	// Process the each
+	for i := 0; i != steps+1; i++ {
+		stop = f(from, s.slice[from])
+		if stop {
+			break
+		}
+		from += step
 	}
 }
 
-// Apply the function to the slice (reverse order)
-func (s *Slice) Eachr(f func(interface{})) {
-	for i := len(s.slice) - 1; i >= 0; i++ {
-		f(s.slice[i])
-	}
+// Apply the function to the whole slice (reverse order)
+// If the function returns true (stop), iteration will stop
+func (s *Slice) Eachr(f func(int, interface{}) (stop bool)) {
+	s.EachRange(len(s.slice)-1, 0, f)
 }
 
 // Set value of ptr to this slice first element
@@ -160,7 +188,7 @@ func (s *Slice) Last(ptr interface{}) {
 }
 
 // Length of this slice
-// Also used as impl of sort.Interface
+// Also used for impl of sort.Interface
 func (s *Slice) Len() int {
 	return len(s.slice)
 }
@@ -184,12 +212,12 @@ func (s *Slice) Slice() *[]interface{} {
 // Note that it can't be a simple cast and instead the data needs to be copied
 // so it's definitely a VERY costly operation.
 func (s *Slice) To(ptr interface{}) {
-	s.ToSub(ptr, 0, len(s.slice)-1)
+	s.ToRange(ptr, 0, len(s.slice)-1)
 }
 
-// Same as To() but only get a subset of the slice
+// Same as To() but only get a subset(range) of the slice
 // Note that from and to can use negative index to indicate "from the end"
-func (s *Slice) ToSub(ptr interface{}, from, to int) {
+func (s *Slice) ToRange(ptr interface{}, from, to int) {
 	l := len(s.slice)
 	if from < 0 {
 		from = l + from

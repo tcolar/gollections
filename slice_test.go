@@ -3,8 +3,9 @@
 package goon
 
 import (
-	"github.com/smartystreets/goconvey/convey"
 	//"log"
+	"fmt"
+	"github.com/smartystreets/goconvey/convey"
 	"sort"
 	"testing"
 )
@@ -93,11 +94,11 @@ func TestSlice(t *testing.T) {
 		convey.So(results[3], convey.ShouldEqual, 4)
 		results[0]++ // this is an actual number now
 		convey.So(results[0], convey.ShouldEqual, 2)
-		s.ToSub(&results, 1, 2)
+		s.ToRange(&results, 1, 2)
 		convey.So(len(results), convey.ShouldEqual, 2)
 		convey.So(results[0], convey.ShouldEqual, 2)
 		convey.So(results[1], convey.ShouldEqual, 3)
-		s.ToSub(&results, -3, -1)
+		s.ToRange(&results, -3, -1)
 		convey.So(len(results), convey.ShouldEqual, 3)
 		convey.So(results[0], convey.ShouldEqual, 2)
 		convey.So(results[2], convey.ShouldEqual, 4)
@@ -120,25 +121,47 @@ func TestSliceFuncs(t *testing.T) {
 	})
 
 	convey.Convey("Any", t, func() {
-		f3 := func(e interface{}) bool {
+		f1 := func(e interface{}) bool {
 			return e.(int) == 7
 		}
-		f4 := func(e interface{}) bool {
+		f2 := func(e interface{}) bool {
 			return e.(int) == 22
 		}
-		convey.So(s.Any(f3), convey.ShouldEqual, true)
-		convey.So(s.Any(f4), convey.ShouldEqual, false)
+		convey.So(s.Any(f1), convey.ShouldEqual, true)
+		convey.So(s.Any(f2), convey.ShouldEqual, false)
 	})
 
-	convey.Convey("Any", t, func() {
-		f3 := func(e interface{}) bool {
-			return e.(int) == 7
+	convey.Convey("Each", t, func() {
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+		// Test each
+		a := "" // Bound varaiable that will be used by .Each closure
+		f := func(i int, e interface{}) bool {
+			a = fmt.Sprintf("%s%d:%s ", a, i, e.(string))
+			return false
 		}
-		f4 := func(e interface{}) bool {
-			return e.(int) == 22
+		s.Each(f)
+		convey.So(a, convey.ShouldEqual, "0:D 1:E 2:A 3:D 4:B 5:E 6:E 7:F ")
+		// reverse each
+		a = ""
+		s.Eachr(f)
+		convey.So(a, convey.ShouldEqual, "7:F 6:E 5:E 4:B 3:D 2:A 1:E 0:D ")
+		// Test a range
+		a = ""
+		s.EachRange(2, -2, f)
+		convey.So(a, convey.ShouldEqual, "2:A 3:D 4:B 5:E 6:E ")
+		// Reversed range
+		a = ""
+		s.EachRange(6, 4, f)
+		convey.So(a, convey.ShouldEqual, "6:E 5:E 4:B ")
+		// Test stop
+		f2 := func(i int, e interface{}) bool {
+			a = fmt.Sprintf("%s%d:%s ", a, i, e.(string))
+			return e.(string) == "B" // stop on B
 		}
-		convey.So(s.Any(f3), convey.ShouldEqual, true)
-		convey.So(s.Any(f4), convey.ShouldEqual, false)
+		a = ""
+		s.Eachr(f2)
+		convey.So(a, convey.ShouldEqual, "7:F 6:E 5:E 4:B ")
 	})
 
 }
@@ -159,6 +182,8 @@ func TestSliceSearch(t *testing.T) {
 			}
 			return -1
 		}
+
+		// Using standard sorting
 		sort.Sort(s)
 		last := -9999
 		var result int
@@ -167,6 +192,7 @@ func TestSliceSearch(t *testing.T) {
 			convey.So(result, convey.ShouldBeGreaterThanOrEqualTo, last)
 			last = result
 		}
+
 		// Example of using standard search on sorted data
 		i := sort.Search(s.Len(), func(i int) bool {
 			var v int
