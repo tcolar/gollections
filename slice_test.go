@@ -1,14 +1,77 @@
 // History: Jan 04 14 tcolar Creation
 
-package goon
+package gollections
 
 import (
-	//"log"
 	"fmt"
 	"github.com/smartystreets/goconvey/convey"
+	"log"
 	"sort"
+	"strings"
 	"testing"
 )
+
+// #################### EXAMPLES ##############################################
+
+// Some usage examples for gollection.Slice
+//This does not demonstarte all the methods, see godoc and tests for more details
+func ExampleSlice() {
+	s := NewSlice()                 // Create a new slice
+	s.Append("_")                   // add something to it
+	s.AppendAll("A", "B", "Z", "J") // add several more things
+	log.Print(s)                    // Slice[4] [_ A B Z J]
+	i := s.Index("A")               // Find the index of the (first) element equal to "A" (1)
+	log.Print(i)                    // 1
+
+	var val string                  // We will get an element of the slice into this strongly typed var
+	s.Get(2, &val)                  // set 'val' to the value of slice element at index 2
+	log.Print(strings.ToLower(val)) // b
+	s.Last(&val)                    // Get the last element
+	log.Print(val)                  // J
+	s.Get(-2, &val)                 // Get "secnd to last" element
+	log.Print(val)                  // Z
+
+	log.Print(s.ContainsAny("K", "Z")) // Does s contain either K or Z ? -> true
+
+	// Using Each() closure to create a string of the elements joined by '-'
+	val = ""
+	s.Each(func(i int, e interface{}) bool {
+		val = fmt.Sprintf("%s-%s", val, e.(string))
+		return false // No "stop" condition is this closure
+	})
+	log.Print(val) // _-A-B-Z-J
+
+	// More complex Each() form, iterating over a range with a stop condition
+	val = ""
+	s.EachRange(1, -2, func(i int, e interface{}) bool { // spik first and last elements
+		val = fmt.Sprintf("%s-%s", val, e.(string))
+		return e == "B" // But stop if we encountered a B
+	})
+	log.Print(val) // -A-B (we iterated from 'A' to 'Z' but stopped iteratin after 'B')
+
+	// Example: using Any() to see if at least one element satisfies a condition
+	any := s.Any(func(e interface{}) bool {
+		str := e.(string) // we are working on strings, so doing an assertion
+		// Is the string the same in upper and owercase ?
+		return strings.ToLower(str) == str
+	})
+	log.Print(any) // true because '_' is the same in upper and lower case
+
+	// Copying some of the slice content back into a strongyl typed slice
+	// Note that it's a costly operation as all elements have to be copied individually
+	var raw []string
+	s.ToRange(1, -2, &raw) // retrieving al but first and last element
+	log.Print(raw)         // [A B Z]  ("standard" string slice)
+
+	// sort / search -> see TestSliceSearch
+
+}
+
+func TestSliceExample(t *testing.T) {
+	ExampleSlice()
+}
+
+// #################### TESTS #################################################
 
 func TestSlice(t *testing.T) {
 	s := testSlice()
@@ -94,11 +157,11 @@ func TestSlice(t *testing.T) {
 		convey.So(results[3], convey.ShouldEqual, 4)
 		results[0]++ // this is an actual number now
 		convey.So(results[0], convey.ShouldEqual, 2)
-		s.ToRange(&results, 1, 2)
+		s.ToRange(1, 2, &results)
 		convey.So(len(results), convey.ShouldEqual, 2)
 		convey.So(results[0], convey.ShouldEqual, 2)
 		convey.So(results[1], convey.ShouldEqual, 3)
-		s.ToRange(&results, -3, -1)
+		s.ToRange(-3, -1, &results)
 		convey.So(len(results), convey.ShouldEqual, 3)
 		convey.So(results[0], convey.ShouldEqual, 2)
 		convey.So(results[2], convey.ShouldEqual, 4)
@@ -155,12 +218,11 @@ func TestSliceFuncs(t *testing.T) {
 		s.EachRange(6, 4, f)
 		convey.So(a, convey.ShouldEqual, "6:E 5:E 4:B ")
 		// Test stop
-		f2 := func(i int, e interface{}) bool {
-			a = fmt.Sprintf("%s%d:%s ", a, i, e.(string))
-			return e.(string) == "B" // stop on B
-		}
 		a = ""
-		s.Eachr(f2)
+		s.Eachr(func(i int, e interface{}) bool {
+			a = fmt.Sprintf("%s%d:%s ", a, i, e.(string))
+			return e == "B" // stop on B
+		})
 		convey.So(a, convey.ShouldEqual, "7:F 6:E 5:E 4:B ")
 	})
 
@@ -203,6 +265,8 @@ func TestSliceSearch(t *testing.T) {
 	})
 }
 
+// #################### BENCHMARKS ############################################
+
 func BenchmarkSlice(b *testing.B) {
 	s := NewSlice()
 	var result int
@@ -220,6 +284,8 @@ func BenchmarkSliceTo(b *testing.B) {
 		s.To(&results) // slow for large slices
 	}
 }
+
+// #################### TESTS DATA ############################################
 
 func testSlice() *Slice {
 	s := NewSlice()

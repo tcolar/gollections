@@ -1,8 +1,9 @@
 // History: Jan 04 14 Thibaut Colar Creation
 
-package goon
+package gollections
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 )
@@ -21,7 +22,7 @@ type Slice struct {
 	Equals func(a, b interface{}) bool
 
 	// Optional comparator function, must return 0 if a==b; -1 if a < b; 1 if a>b
-	// **Nil by default** but must be defined for sorting to work.
+	// **Nil by default**, MUST be defined for sorting to work.
 	Compare func(a, b interface{}) int
 }
 
@@ -207,17 +208,22 @@ func (s *Slice) Slice() *[]interface{} {
 	return &s.slice
 }
 
+// impl String interface
+func (s *Slice) String() string {
+	return fmt.Sprintf("Slice[%d] %v", len(s.slice), s.slice)
+}
+
 // Export our "generic" slice to a typed slice (say []int)
 // Ptr needs to be a pointer to a slice
 // Note that it can't be a simple cast and instead the data needs to be copied
 // so it's definitely a VERY costly operation.
 func (s *Slice) To(ptr interface{}) {
-	s.ToRange(ptr, 0, len(s.slice)-1)
+	s.ToRange(0, len(s.slice)-1, ptr)
 }
 
 // Same as To() but only get a subset(range) of the slice
 // Note that from and to can use negative index to indicate "from the end"
-func (s *Slice) ToRange(ptr interface{}, from, to int) {
+func (s *Slice) ToRange(from, to int, ptr interface{}) {
 	l := len(s.slice)
 	if from < 0 {
 		from = l + from
