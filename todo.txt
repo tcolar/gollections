@@ -1,0 +1,38 @@
+
+find(|index, val) bool -> (elem, index)
+findAll|index, val| bool -> new list ?
+
+join -> String method , err
+if ok := inty.(iface); ok {
+   yay()
+
+max -> use less
+min -> use less
+
+peek
+pop
+push
+insert
+insertAll
+
+removeVal
+removeVals
+removeAt
+removeRange
+removeFunc(|index, val| c)
+
+// toSliceFunc ?  (~ find with a func)
+
+fill(interface{}, nb)
+
+
+set
+
+reverse
+map |index, value| -> interface{} Create a new list which is the result of calling c for every item in this list. The new list is typed based on the return type of c
+reduce (Obj? init, |Obj?,V,Int->Obj?| c)
+
+? intersection (items in both list)
+? union -> append then unique ??
+? unique -> proper set, no duplicates
+
