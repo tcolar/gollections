@@ -33,6 +33,8 @@ func ExampleSlice() {
 
 	log.Print(s.ContainsAny("K", "Z")) // Does s contain either K or Z ? -> true
 
+	log.Print(s.Join("|")) // "_|A|B|Z|J"
+
 	// Using Each() closure to create a string of the elements joined by '-'
 	val = ""
 	s.Each(func(i int, e interface{}) bool {
@@ -43,16 +45,16 @@ func ExampleSlice() {
 
 	// More complex Each() form, iterating over a range with a stop condition
 	val = ""
-	s.EachRange(1, -2, func(i int, e interface{}) bool { // spik first and last elements
+	s.EachRange(1, -2, func(i int, e interface{}) bool { // skip first and last elements
 		val = fmt.Sprintf("%s-%s", val, e.(string))
 		return e == "B" // But stop if we encountered a B
 	})
-	log.Print(val) // -A-B (we iterated from 'A' to 'Z' but stopped iteratin after 'B')
+	log.Print(val) // -A-B (We iterated from 'A' to 'Z' but stopped iteratin after 'B')
 
 	// Example: using Any() to see if at least one element satisfies a condition
 	any := s.Any(func(e interface{}) bool {
 		str := e.(string) // we are working on strings, so doing an assertion
-		// Is the string the same in upper and owercase ?
+		// Is the string the same in upper and lower case ?
 		return strings.ToLower(str) == str
 	})
 	log.Print(any) // true because '_' is the same in upper and lower case
@@ -97,7 +99,7 @@ func TestSlice(t *testing.T) {
 		convey.So(s.ContainsAll(7, 1, 15), convey.ShouldEqual, true)
 		convey.So(s.ContainsAll(7, 999), convey.ShouldEqual, false)
 		convey.So(s.ContainsAny(99, 7, 15), convey.ShouldEqual, true)
-		convey.So(s.ContainsAll(97, 98, -99), convey.ShouldEqual, false)
+		convey.So(s.ContainsAny(97, 98, -99), convey.ShouldEqual, false)
 	})
 
 	convey.Convey("First & Last", t, func() {
@@ -107,14 +109,20 @@ func TestSlice(t *testing.T) {
 		convey.So(result, convey.ShouldEqual, 15)
 	})
 
+	convey.Convey("Join", t, func() {
+		convey.So(s.Join("|"), convey.ShouldEqual, "1|2|3|7|9|15")
+	})
+
 	convey.Convey("Len", t, func() {
 		convey.So(s.Len(), convey.ShouldEqual, 6)
 	})
 
 	convey.Convey("Clear", t, func() {
 		s.Clear()
+		convey.So(s.IsEmpty(), convey.ShouldEqual, true)
 		convey.So(s.Len(), convey.ShouldEqual, 0)
 		s.Append(7)
+		convey.So(s.IsEmpty(), convey.ShouldEqual, false)
 		convey.So(s.Len(), convey.ShouldEqual, 1)
 	})
 
@@ -135,15 +143,21 @@ func TestSlice(t *testing.T) {
 	convey.Convey("Clone", t, func() {
 		s.Clear()
 		s.Append(1)
-		s2 := s.Clone()
+		s2 := s.Clone() // 1
 		convey.So(s.Len(), convey.ShouldEqual, s2.Len())
-		s.Append(2)
-		s2.AppendAll(3, 4)
+		s.Append(2)        // 1 2
+		s2.AppendAll(3, 4) // 1 3 4
 		convey.So(s.Len(), convey.ShouldEqual, 2)
 		convey.So(s2.Len(), convey.ShouldEqual, 3)
 		s.Get(-1, &result)
 		convey.So(result, convey.ShouldEqual, 2)
 		s2.Get(-1, &result)
+		convey.So(result, convey.ShouldEqual, 4)
+		s3 := s2.CloneRange(1, -1) // 3 4
+		convey.So(s3.Len(), convey.ShouldEqual, 2)
+		s3.Get(0, &result)
+		convey.So(result, convey.ShouldEqual, 3)
+		s3.Get(1, &result)
 		convey.So(result, convey.ShouldEqual, 4)
 	})
 	convey.Convey("To", t, func() {

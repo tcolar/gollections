@@ -3,6 +3,7 @@
 package gollections
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"reflect"
@@ -64,7 +65,7 @@ func (s *Slice) AppendAll(more ...interface{}) {
 	s.slice = append(s.slice, more...)
 }
 
-// Append another goon.Slice to this slice
+// Append another Slice to this slice
 func (s *Slice) AppendSlice(slice *Slice) {
 	s.slice = append(s.slice, slice.slice...)
 }
@@ -84,6 +85,21 @@ func (s *Slice) Clear() {
 func (s *Slice) Clone() *Slice {
 	clone := NewSlice()
 	clone.slice = append(clone.slice, s.slice)
+	return clone
+}
+
+// Clone part of this slice into a new Slice
+// From and To are both inclusive
+func (s *Slice) CloneRange(from, to int) *Slice {
+	l := len(s.slice)
+	if from < 0 {
+		from = l + from
+	}
+	if to < 0 {
+		to = l + to
+	}
+	clone := NewSlice()
+	clone.slice = append(clone.slice, s.slice[from:to+1]...)
 	return clone
 }
 
@@ -120,6 +136,7 @@ func (s *Slice) Each(f func(int, interface{}) (stop bool)) {
 }
 
 // Apply the function to the slice range
+// From and To are both inclusive
 // if from is < to it will be called in reversed order
 // If the function returns true (stop), iteration will stop
 func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
@@ -183,6 +200,25 @@ func (s *Slice) Index(val interface{}) int {
 	return -1
 }
 
+// Is this slice empty
+func (s *Slice) IsEmpty() bool {
+	return len(s.slice) == 0
+}
+
+// Create a string by jining all the elements with the given seprator
+// Note: Use fmt.Sprintf("%v", e) to get each element as a string
+func (s *Slice) Join(sep string) string {
+	var buf bytes.Buffer
+	s.Each(func(i int, e interface{}) bool {
+		if i != 0 {
+			buf.WriteString(sep)
+		}
+		buf.WriteString(fmt.Sprintf("%v", e))
+		return false
+	})
+	return buf.String()
+}
+
 // Set value of ptr to this slice last element
 func (s *Slice) Last(ptr interface{}) {
 	s.Get(-1, ptr)
@@ -222,6 +258,7 @@ func (s *Slice) To(ptr interface{}) {
 }
 
 // Same as To() but only get a subset(range) of the slice
+// From and To are both inclusive
 // Note that from and to can use negative index to indicate "from the end"
 func (s *Slice) ToRange(from, to int, ptr interface{}) {
 	l := len(s.slice)
@@ -232,7 +269,7 @@ func (s *Slice) ToRange(from, to int, ptr interface{}) {
 		to = l + to
 	}
 	if to < from || from < 0 || to > l-1 {
-		log.Fatalf("ToSub: Indexes(%d:%d) out of range(0:%d)", from, to, l-1)
+		log.Fatalf("ToRange: Indexes(%d:%d) out of range(0:%d)", from, to, l-1)
 	}
 
 	// Value of the pointer to the target
