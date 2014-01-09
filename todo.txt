@@ -1,11 +1,3 @@
-
-find(|index, val) bool -> (elem, index)
-findAll|index, val| bool -> new list ?
-
-join -> String method , err
-if ok := inty.(iface); ok {
-   yay()
-
 max -> use less
 min -> use less
 
@@ -20,11 +12,6 @@ removeVals
 removeAt
 removeRange
 removeFunc(|index, val| c)
-
-// toSliceFunc ?  (~ find with a func)
-
-fill(interface{}, nb)
-
 
 set
 

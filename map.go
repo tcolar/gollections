@@ -5,5 +5,5 @@ package gollections
 import ()
 
 type Map struct {
-	// TBD
+	// TBD only slice done yet
 }
