@@ -59,13 +59,13 @@ func (s *Slice) Any(f func(interface{}) bool) bool {
 }
 
 // Append a single value
-func (s *Slice) Append(more interface{}) {
-	s.slice = append(s.slice, more)
+func (s *Slice) Append(elem interface{}) {
+	s.slice = append(s.slice, elem)
 }
 
 // Append several values
-func (s *Slice) AppendAll(more ...interface{}) {
-	s.slice = append(s.slice, more...)
+func (s *Slice) AppendAll(elems ...interface{}) {
+	s.slice = append(s.slice, elems...)
 }
 
 // Append another Slice to this slice
@@ -229,13 +229,46 @@ func (s *Slice) Get(idx int, ptr interface{}) {
 // Return the (lowest) index of given element (using Equals() method)
 // Return -1 if the lement is part of the slice
 // Note, this uses simple iteration, use sort methods if meeding more performance
-func (s *Slice) Index(val interface{}) int {
+func (s *Slice) Index(elem interface{}) int {
 	for i, e := range s.slice {
-		if s.Equals(e, val) {
+		if s.Equals(e, elem) {
 			return i
 		}
 	}
 	return -1
+}
+
+// Insert the element before index idx
+// Can use negative index
+func (s *Slice) Insert(idx int, elem interface{}) {
+	var err error
+	if idx, err = s.handleIndex(idx); err != nil {
+		panic(err.Error())
+	}
+	s.slice = append(s.slice, 0)
+	copy(s.slice[idx+1:], s.slice[idx:])
+	s.slice[idx] = elem
+}
+
+// Insert All the element before index idx
+// Can use negative index
+func (s *Slice) InsertAll(idx int, elems ...interface{}) {
+	var err error
+	if idx, err = s.handleIndex(idx); err != nil {
+		panic(err.Error())
+	}
+	// Expand the slice by elems size
+	s.slice = append(s.slice, make([]interface{}, len(elems))...)
+	// Shift "in place" elements to the right of index to the right
+	copy(s.slice[idx+len(elems):], s.slice[idx:])
+	// fill in the space with the elements to be inserted
+	copy(s.slice[idx:], elems)
+}
+
+// Insert All the element of the slice before index idx
+// Can use negative index
+func (s *Slice) InsertSlice(idx int, slice *Slice) {
+	s.InsertAll(idx, slice.slice...)
 }
 
 // Is this slice empty

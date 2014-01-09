@@ -1,14 +1,8 @@
 max -> use less
 min -> use less
 
-peek
-pop
-push
-insert
-insertAll
-
-removeVal
-removeVals
+removeElem
+removeElems
 removeAt
 removeRange
 removeFunc(|index, val| c)

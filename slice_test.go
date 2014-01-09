@@ -174,6 +174,24 @@ func TestSlice(t *testing.T) {
 		convey.So(s.Join(""), convey.ShouldEqual, "XAAAAA")
 	})
 
+	convey.Convey("Insert", t, func() {
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+		s.Insert(0, "X")  // XDEADBEEF
+		s.Insert(5, "Y")  // XDEADYBEEF
+		s.Insert(-3, "Z") // XDEADYBZEEF
+		convey.So(s.Join(""), convey.ShouldEqual, "XDEADYBZEEF")
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+		s.InsertAll(2, "H", "E", "L", "L", "O")  // DEHELLOADBEEF
+		s.InsertAll(-3, "W", "O", "R", "L", "D") // DEHELLOADBWORLDEEF
+		convey.So(s.Join(""), convey.ShouldEqual, "DEHELLOADBWORLDEEF")
+		s2 := NewSlice()
+		s2.AppendAll("T", "E", "S", "T")
+		s.InsertSlice(-1, s2)
+		convey.So(s.Join(""), convey.ShouldEqual, "DEHELLOADBWORLDEETESTF")
+	})
+
 	convey.Convey("To", t, func() {
 		var results []int
 		s.Clear()
@@ -273,7 +291,7 @@ func TestSliceFuncs(t *testing.T) {
 	})
 
 	var result string
-	convey.Convey("Stack", t, func() {
+	convey.Convey("Stack Ops", t, func() {
 		s.Clear()
 		convey.So(func() { s.Peek(&result) }, convey.ShouldPanic)
 		s.Push("A")
