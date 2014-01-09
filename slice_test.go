@@ -59,7 +59,7 @@ func ExampleSlice() {
 	})
 	log.Print(any) // true because '_' is the same in upper and lower case
 
-	// Copying some of the slice content back into a strongyl typed slice
+	// Copying some of the slice content back into a strongly typed slice
 	// Note that it's a costly operation as all elements have to be copied individually
 	var raw []string
 	s.ToRange(1, -2, &raw) // retrieving all but first and last element
@@ -100,12 +100,12 @@ func TestSlice(t *testing.T) {
 	})
 
 	convey.Convey("Contains", t, func() {
-		convey.So(s.Contains(7), convey.ShouldEqual, true)
-		convey.So(s.Contains(999), convey.ShouldEqual, false)
-		convey.So(s.ContainsAll(7, 1, 15), convey.ShouldEqual, true)
-		convey.So(s.ContainsAll(7, 999), convey.ShouldEqual, false)
-		convey.So(s.ContainsAny(99, 7, 15), convey.ShouldEqual, true)
-		convey.So(s.ContainsAny(97, 98, -99), convey.ShouldEqual, false)
+		convey.So(s.Contains(7), convey.ShouldBeTrue)
+		convey.So(s.Contains(999), convey.ShouldBeFalse)
+		convey.So(s.ContainsAll(7, 1, 15), convey.ShouldBeTrue)
+		convey.So(s.ContainsAll(7, 999), convey.ShouldBeFalse)
+		convey.So(s.ContainsAny(99, 7, 15), convey.ShouldBeTrue)
+		convey.So(s.ContainsAny(97, 98, -99), convey.ShouldBeFalse)
 	})
 
 	convey.Convey("First & Last", t, func() {
@@ -125,10 +125,10 @@ func TestSlice(t *testing.T) {
 
 	convey.Convey("Clear", t, func() {
 		s.Clear()
-		convey.So(s.IsEmpty(), convey.ShouldEqual, true)
+		convey.So(s.IsEmpty(), convey.ShouldBeTrue)
 		convey.So(s.Len(), convey.ShouldEqual, 0)
 		s.Append(7)
-		convey.So(s.IsEmpty(), convey.ShouldEqual, false)
+		convey.So(s.IsEmpty(), convey.ShouldBeFalse)
 		convey.So(s.Len(), convey.ShouldEqual, 1)
 	})
 
@@ -207,8 +207,8 @@ func TestSliceFuncs(t *testing.T) {
 		f2 := func(e interface{}) bool {
 			return e.(int) > 5
 		}
-		convey.So(s.All(f1), convey.ShouldEqual, true)
-		convey.So(s.All(f2), convey.ShouldEqual, false)
+		convey.So(s.All(f1), convey.ShouldBeTrue)
+		convey.So(s.All(f2), convey.ShouldBeFalse)
 	})
 
 	convey.Convey("Any", t, func() {
@@ -218,8 +218,8 @@ func TestSliceFuncs(t *testing.T) {
 		f2 := func(e interface{}) bool {
 			return e.(int) == 22
 		}
-		convey.So(s.Any(f1), convey.ShouldEqual, true)
-		convey.So(s.Any(f2), convey.ShouldEqual, false)
+		convey.So(s.Any(f1), convey.ShouldBeTrue)
+		convey.So(s.Any(f2), convey.ShouldBeFalse)
 	})
 
 	convey.Convey("Each", t, func() {
@@ -270,6 +270,21 @@ func TestSliceFuncs(t *testing.T) {
 			return e == "E"
 		})
 		convey.So(es.Join(""), convey.ShouldEqual, "EEE")
+	})
+
+	var result string
+	convey.Convey("Stack", t, func() {
+		s.Clear()
+		convey.So(func() { s.Peek(&result) }, convey.ShouldPanic)
+		s.Push("A")
+		s.Push("B")
+		convey.So(s.Join(""), convey.ShouldEqual, "AB")
+		s.Peek(&result)
+		convey.So(result, convey.ShouldEqual, "B")
+		convey.So(s.Join(""), convey.ShouldEqual, "AB")
+		s.Pop(&result)
+		convey.So(result, convey.ShouldEqual, "B")
+		convey.So(s.Join(""), convey.ShouldEqual, "A")
 	})
 }
 

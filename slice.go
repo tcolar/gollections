@@ -4,8 +4,9 @@ package gollections
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"log"
+	//"log"
 	"reflect"
 )
 
@@ -93,12 +94,12 @@ func (s *Slice) Clone() *Slice {
 // Clone part of this slice into a new Slice
 // From and To are both inclusive
 func (s *Slice) CloneRange(from, to int) *Slice {
-	l := len(s.slice)
-	if from < 0 {
-		from = l + from
+	var err error
+	if from, err = s.handleIndex(from); err != nil {
+		panic(err.Error())
 	}
-	if to < 0 {
-		to = l + to
+	if to, err = s.handleIndex(to); err != nil {
+		panic(err.Error())
 	}
 	clone := NewSlice()
 	clone.slice = append(clone.slice, s.slice[from:to+1]...)
@@ -142,13 +143,12 @@ func (s *Slice) Each(f func(int, interface{}) (stop bool)) {
 // if from is < to it will be called in reversed order
 // If the function returns true (stop), iteration will stop
 func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
-	l := len(s.slice)
-	// Deal with negative indexes
-	if from < 0 {
-		from = l + from
+	var err error
+	if from, err = s.handleIndex(from); err != nil {
+		panic(err.Error())
 	}
-	if to < 0 {
-		to = l + to
+	if to, err = s.handleIndex(to); err != nil {
+		panic(err.Error())
 	}
 	// Figure if we are to step forward or backwars
 	step := 1
@@ -206,7 +206,11 @@ func (s *Slice) FindAll(f func(int, interface{}) (found bool)) *Slice {
 }
 
 // Set value of ptr to this slice first element
+// Return an error if slice is empty
 func (s *Slice) First(ptr interface{}) {
+	if _, err := s.handleIndex(0); err != nil {
+		panic(err.Error())
+	}
 	s.Get(0, ptr)
 }
 
@@ -214,8 +218,9 @@ func (s *Slice) First(ptr interface{}) {
 // If idx is negative then idx element from the end -> slice[len(slice)+idx]
 // ie Get(-1) would return the last element
 func (s *Slice) Get(idx int, ptr interface{}) {
-	if idx < 0 {
-		idx = len(s.slice) + idx
+	var err error
+	if idx, err = s.handleIndex(idx); err != nil {
+		panic(err.Error())
 	}
 	obj := reflect.ValueOf(ptr).Elem()
 	obj.Set(reflect.Indirect(s.sliceValPtr).Index(idx).Elem())
@@ -252,7 +257,11 @@ func (s *Slice) Join(sep string) string {
 }
 
 // Set value of ptr to this slice last element
+// Will panic if slice is empty
 func (s *Slice) Last(ptr interface{}) {
+	if _, err := s.handleIndex(-1); err != nil {
+		panic(err.Error())
+	}
 	s.Get(-1, ptr)
 }
 
@@ -268,7 +277,33 @@ func (s *Slice) Less(a, b int) bool {
 	if s.Compare == nil {
 		panic("Slice.Compare function was not implemented !")
 	}
+	var err error
+	if a, err = s.handleIndex(a); err != nil {
+		panic(err.Error())
+	}
+	if b, err = s.handleIndex(b); err != nil {
+		panic(err.Error())
+	}
 	return s.Compare(s.slice[a], s.slice[b]) == -1
+}
+
+// Returns the last element
+// Will panic if slice is empty
+func (s *Slice) Peek(ptr interface{}) {
+	s.Last(ptr)
+}
+
+// Pop (return & remove) the last element
+// Will panic if slice is empty
+func (s *Slice) Pop(ptr interface{}) {
+	s.Last(ptr)
+	// remove last elem of slice
+	s.slice = s.slice[:len(s.slice)-1]
+}
+
+// Push an elem at the end of the slice (same as Append)
+func (s *Slice) Push(elem interface{}) {
+	s.Append(elem)
 }
 
 // Returns pointer to the raw underlying slice ([]interface{})
@@ -293,15 +328,12 @@ func (s *Slice) To(ptr interface{}) {
 // From and To are both inclusive
 // Note that from and to can use negative index to indicate "from the end"
 func (s *Slice) ToRange(from, to int, ptr interface{}) {
-	l := len(s.slice)
-	if from < 0 {
-		from = l + from
+	var err error
+	if from, err = s.handleIndex(from); err != nil {
+		panic(err.Error())
 	}
-	if to < 0 {
-		to = l + to
-	}
-	if to < from || from < 0 || to > l-1 {
-		log.Fatalf("ToRange: Indexes(%d:%d) out of range(0:%d)", from, to, l-1)
+	if to, err = s.handleIndex(to); err != nil {
+		panic(err.Error())
 	}
 
 	// Value of the pointer to the target
@@ -322,6 +354,27 @@ func (s *Slice) ToRange(from, to int, ptr interface{}) {
 }
 
 // Swap 2 elements (used as impl of sort.Interface)
+// Return an error if the indexes are out of bounds
 func (s *Slice) Swap(a, b int) {
+	var err error
+	if a, err = s.handleIndex(a); err != nil {
+		panic(err.Error())
+	}
+	if b, err = s.handleIndex(b); err != nil {
+		panic(err.Error())
+	}
+
 	s.slice[a], s.slice[b] = s.slice[b], s.slice[a]
+}
+
+// Validate the index is in the slice bounds
+// Also turm negative indexes into index from the end of the slice (-1 = last)
+func (s *Slice) handleIndex(idx int) (int, error) {
+	if idx < 0 {
+		idx = len(s.slice) + idx
+	}
+	if idx >= len(s.slice) || idx < 0 {
+		return idx, errors.New(fmt.Sprintf("Invalid slice index: %d", idx))
+	}
+	return idx, nil
 }
