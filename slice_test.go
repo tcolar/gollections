@@ -19,8 +19,11 @@ func ExampleSlice() {
 	s := NewSlice()                 // Create a new slice
 	s.Append("_")                   // add something to it
 	s.AppendAll("A", "B", "Z", "J") // add several more things
-	log.Print(s)                    // Slice[4] [_ A B Z J]
-	i := s.Index("A")               // Find the index of the (first) element equal to "A" (1)
+	log.Print(s)                    // Slice[5] [_ A B Z J]
+	s.Insert(1, "*")                // insert
+	log.Print(s)                    // Slice[6] [_ * A B Z J]
+	s.RemoveAt(1)                   // Remove '*'
+	i := s.IndexOf("A")             // Find the index of the (first) element equal to "A" (1)
 	log.Print(i)                    // 1
 
 	var val string                  // We will get an element of the slice into this strongly typed var
@@ -94,9 +97,9 @@ func TestSlice(t *testing.T) {
 	})
 
 	convey.Convey("Index", t, func() {
-		convey.So(s.Index(7), convey.ShouldEqual, 3)
-		convey.So(s.Index(1), convey.ShouldEqual, 0)
-		convey.So(s.Index(999), convey.ShouldEqual, -1)
+		convey.So(s.IndexOf(7), convey.ShouldEqual, 3)
+		convey.So(s.IndexOf(1), convey.ShouldEqual, 0)
+		convey.So(s.IndexOf(999), convey.ShouldEqual, -1)
 	})
 
 	convey.Convey("Contains", t, func() {
@@ -190,6 +193,25 @@ func TestSlice(t *testing.T) {
 		s2.AppendAll("T", "E", "S", "T")
 		s.InsertSlice(-1, s2)
 		convey.So(s.Join(""), convey.ShouldEqual, "DEHELLOADBWORLDEETESTF")
+	})
+
+	convey.Convey("Remove", t, func() {
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+		s.RemoveAt(2)
+		convey.So(s.Join(""), convey.ShouldEqual, "DEDBEEF")
+		s.RemoveRange(1, -2)
+		convey.So(s.Join(""), convey.ShouldEqual, "DEF")
+		s.Clear()
+		s.AppendAll("T", "H", "I", "B", "A", "U", "T")
+		s.RemoveFunc(func(i int, e interface{}) bool {
+			return e.(string) <= "H" // remove letters <= than 'H'
+		})
+		convey.So(s.Join(""), convey.ShouldEqual, "TIUT")
+		s.RemoveElem("I")
+		convey.So(s.Join(""), convey.ShouldEqual, "TUT")
+		s.RemoveElems("T")
+		convey.So(s.Join(""), convey.ShouldEqual, "U")
 	})
 
 	convey.Convey("To", t, func() {

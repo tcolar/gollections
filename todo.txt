@@ -1,12 +1,6 @@
 max -> use less
 min -> use less
 
-removeElem
-removeElems
-removeAt
-removeRange
-removeFunc(|index, val| c)
-
 set
 
 reverse

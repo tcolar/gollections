@@ -109,7 +109,7 @@ func (s *Slice) CloneRange(from, to int) *Slice {
 // Does the slice contain the given element (by equality)
 // Note, this uses simple iteration, use sort methods if meeding more performance
 func (s *Slice) Contains(elem interface{}) bool {
-	return s.Index(elem) != -1
+	return s.IndexOf(elem) != -1
 }
 
 // Does the slice contain all the given values
@@ -229,7 +229,7 @@ func (s *Slice) Get(idx int, ptr interface{}) {
 // Return the (lowest) index of given element (using Equals() method)
 // Return -1 if the lement is part of the slice
 // Note, this uses simple iteration, use sort methods if meeding more performance
-func (s *Slice) Index(elem interface{}) int {
+func (s *Slice) IndexOf(elem interface{}) int {
 	for i, e := range s.slice {
 		if s.Equals(e, elem) {
 			return i
@@ -342,6 +342,50 @@ func (s *Slice) Push(elem interface{}) {
 // Returns pointer to the raw underlying slice ([]interface{})
 func (s *Slice) Slice() *[]interface{} {
 	return &s.slice
+}
+
+// Remove the element at the given index
+func (s *Slice) RemoveAt(idx int) {
+	copy(s.slice[idx:], s.slice[idx+1:]) // shift elements past index to the left
+	s.slice = s.slice[:len(s.slice)-1]   // lose last element
+}
+
+// Remove the first element found by value equality (found by IndexFrom method)
+func (s *Slice) RemoveElem(elem interface{}) {
+	idx := s.IndexOf(elem)
+	if idx >= 0 {
+		s.RemoveAt(idx)
+	}
+}
+
+// Remove all elements by value equality (using Equals function)
+func (s *Slice) RemoveElems(elem interface{}) {
+	s.RemoveFunc(func(idx int, e interface{}) bool {
+		return s.Equals(elem, e)
+	})
+}
+
+// Remove the elements that match the function (where the function return true)
+func (s *Slice) RemoveFunc(f func(idx int, elem interface{}) bool) {
+	for i := 0; i < len(s.slice); i++ {
+		if f(i, s.slice[i]) {
+			s.RemoveAt(i)
+			i--
+		}
+	}
+}
+
+// Remove the elements within the given index range
+func (s *Slice) RemoveRange(from, to int) {
+	var err error
+	if from, err = s.handleIndex(from); err != nil {
+		panic(err.Error())
+	}
+	if to, err = s.handleIndex(to); err != nil {
+		panic(err.Error())
+	}
+	copy(s.slice[from:], s.slice[to:])         // shift elements
+	s.slice = s.slice[:len(s.slice)-(to-from)] // lose last elements
 }
 
 // impl String interface
