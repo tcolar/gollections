@@ -166,6 +166,14 @@ func TestSlice(t *testing.T) {
 		s3.Get(1, &result)
 		convey.So(result, convey.ShouldEqual, 4)
 	})
+
+	convey.Convey("Fill", t, func() {
+		s.Clear()
+		s.Append("X")
+		s.Fill("A", 5)
+		convey.So(s.Join(""), convey.ShouldEqual, "XAAAAA")
+	})
+
 	convey.Convey("To", t, func() {
 		var results []int
 		s.Clear()

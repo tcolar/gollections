@@ -174,6 +174,13 @@ func (s *Slice) Eachr(f func(int, interface{}) (stop bool)) {
 	s.EachRange(len(s.slice)-1, 0, f)
 }
 
+// Fill(append to) the slice with 'count' times the 'elem' value
+func (s *Slice) Fill(elem interface{}, count int) {
+	for i := 0; i != count; i++ {
+		s.Append(elem)
+	}
+}
+
 // Apply a function to find an element in the slice
 // Returns the index if found, or -1 if no matches.
 // The function is expected to return true when the index is found.
