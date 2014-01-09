@@ -38,7 +38,7 @@ func ExampleSlice() {
 
 	log.Print(s.Join("|")) // "_|A|B|Z|J"
 
-	// Using Each() closure to create a string of the elements joined by '-'
+	// Using Each() closure to manually create a string of the elements joined by '-'
 	val = ""
 	s.Each(func(i int, e interface{}) bool {
 		val = fmt.Sprintf("%s-%s", val, e.(string))
@@ -52,7 +52,7 @@ func ExampleSlice() {
 		val = fmt.Sprintf("%s-%s", val, e.(string))
 		return e == "B" // But stop if we encountered a B
 	})
-	log.Print(val) // -A-B (We iterated from 'A' to 'Z' but stopped iteratin after 'B')
+	log.Print(val) // -A-B (We iterated from 'A' to 'Z' but stopped iterating after 'B')
 
 	// Example: using Any() to see if at least one element satisfies a condition
 	any := s.Any(func(e interface{}) bool {
@@ -75,7 +75,6 @@ func ExampleSlice() {
 	log.Print(found) // Slice[3] [A B J]
 
 	// sort / search -> see TestSliceSearch
-
 }
 
 func TestSliceExample(t *testing.T) {
@@ -214,6 +213,14 @@ func TestSlice(t *testing.T) {
 		convey.So(s.Join(""), convey.ShouldEqual, "U")
 	})
 
+	convey.Convey("Set", t, func() {
+		s.Clear()
+		s.AppendAll(1, 2, 3, 4)
+		s.Set(2, 99)
+		s.Get(2, &result)
+		convey.So(result, convey.ShouldEqual, 99)
+	})
+
 	convey.Convey("To", t, func() {
 		var results []int
 		s.Clear()
@@ -328,22 +335,38 @@ func TestSliceFuncs(t *testing.T) {
 	})
 }
 
-func TestSliceSearch(t *testing.T) {
-	s := testSlice()
+// Example compareInt Compare implementation to be used by search & min max
+var compareInt = func(a, b interface{}) int {
+	ai := a.(int)
+	bi := b.(int)
+	if ai == bi {
+		return 0
+	}
+	if ai > bi {
+		return 1
+	}
+	return -1
+}
 
+func TestSliceSearch(t *testing.T) {
+
+	// min / max
+	convey.Convey("MinMax", t, func() {
+		s := NewSlice()
+		s.Compare = compareInt
+		s.AppendAll(1, -5, 8, -2, 99, 98, 2, -5, 33)
+		var min int
+		var max int
+		s.Min(&min)
+		s.Max(&max)
+		convey.So(min, convey.ShouldEqual, -5)
+		convey.So(max, convey.ShouldEqual, 99)
+	})
+
+	// Example of sorting the slice
 	convey.Convey("Sort & Search", t, func() {
-		// Example of sorting the slice
-		s.Compare = func(a, b interface{}) int {
-			ai := a.(int)
-			bi := b.(int)
-			if ai == bi {
-				return 0
-			}
-			if ai > bi {
-				return 1
-			}
-			return -1
-		}
+		s := testSlice()
+		s.Compare = compareInt
 
 		// Using standard sorting
 		sort.Sort(s)

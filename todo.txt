@@ -1,7 +1,3 @@
-max -> use less
-min -> use less
-
-set
 
 reverse
 map |index, value| -> interface{} Create a new list which is the result of calling c for every item in this list. The new list is typed based on the return type of c
