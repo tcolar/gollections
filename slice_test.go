@@ -62,8 +62,14 @@ func ExampleSlice() {
 	// Copying some of the slice content back into a strongyl typed slice
 	// Note that it's a costly operation as all elements have to be copied individually
 	var raw []string
-	s.ToRange(1, -2, &raw) // retrieving al but first and last element
+	s.ToRange(1, -2, &raw) // retrieving all but first and last element
 	log.Print(raw)         // [A B Z]  ("standard" string slice)
+
+	// Using findAll function to create a new list
+	found := s.FindAll(func(i int, e interface{}) bool {
+		return e.(string) < "X"
+	})
+	log.Print(found) // Slice[3] [A B J]
 
 	// sort / search -> see TestSliceSearch
 
@@ -240,6 +246,23 @@ func TestSliceFuncs(t *testing.T) {
 		convey.So(a, convey.ShouldEqual, "7:F 6:E 5:E 4:B ")
 	})
 
+	convey.Convey("Find", t, func() {
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+		i := s.Find(func(i int, e interface{}) bool {
+			return e == "E"
+		})
+		convey.So(i, convey.ShouldEqual, 1)
+		i = s.Find(func(i int, e interface{}) bool {
+			return e == "Z"
+		})
+		convey.So(i, convey.ShouldEqual, -1)
+
+		es := s.FindAll(func(i int, e interface{}) bool {
+			return e == "E"
+		})
+		convey.So(es.Join(""), convey.ShouldEqual, "EEE")
+	})
 }
 
 func TestSliceSearch(t *testing.T) {

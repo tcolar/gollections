@@ -10,20 +10,22 @@ import (
 )
 
 // Custom "Generic" (Sorta) slice
-// Note: Satisfies sort.Interface so can use sort, search etc...
+// Note: Satisfies sort.Interface so can use sort, search as long as Compare is
+// implemented
 type Slice struct {
 
-	// internal slice that hold the objects
+	// internal slice that hold the items
 	slice []interface{}
 	// value of pointer to slice
 	sliceValPtr reflect.Value
 
 	// Returns whether two items are equal
-	// Default imlementation uses reflect.DeepEqual
+	// Default imlementation uses reflect.DeepEqual (==)
 	Equals func(a, b interface{}) bool
 
 	// Optional comparator function, must return 0 if a==b; -1 if a < b; 1 if a>b
-	// **Nil by default**, MUST be defined for sorting to work.
+	// **Nil by default**
+	// **MUST** be defined for sorting to work.
 	Compare func(a, b interface{}) int
 }
 
@@ -172,6 +174,30 @@ func (s *Slice) Eachr(f func(int, interface{}) (stop bool)) {
 	s.EachRange(len(s.slice)-1, 0, f)
 }
 
+// Apply a function to find an element in the slice
+// Returns the index if found, or -1 if no matches.
+// The function is expected to return true when the index is found.
+func (s *Slice) Find(f func(int, interface{}) (found bool)) (index int) {
+	for i, e := range s.slice {
+		if f(i, e) {
+			return i
+		}
+	}
+	return -1
+}
+
+// Apply a function to find all element in the slice for which the function returns true
+// Returns a new Slice made of the matches.
+func (s *Slice) FindAll(f func(int, interface{}) (found bool)) *Slice {
+	results := NewSlice()
+	for i, e := range s.slice {
+		if f(i, e) {
+			results.slice = append(results.slice, e)
+		}
+	}
+	return results
+}
+
 // Set value of ptr to this slice first element
 func (s *Slice) First(ptr interface{}) {
 	s.Get(0, ptr)
@@ -209,13 +235,12 @@ func (s *Slice) IsEmpty() bool {
 // Note: Use fmt.Sprintf("%v", e) to get each element as a string
 func (s *Slice) Join(sep string) string {
 	var buf bytes.Buffer
-	s.Each(func(i int, e interface{}) bool {
+	for i, e := range s.slice {
 		if i != 0 {
 			buf.WriteString(sep)
 		}
 		buf.WriteString(fmt.Sprintf("%v", e))
-		return false
-	})
+	}
 	return buf.String()
 }
 
