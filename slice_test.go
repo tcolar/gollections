@@ -74,7 +74,8 @@ func ExampleSlice() {
 	})
 	log.Print(found) // Slice[3] [A B J]
 
-	// sort / search -> see TestSliceSearch
+	// see tests for examples of sort, search, map, reduce and more
+
 }
 
 func TestSliceExample(t *testing.T) {
@@ -319,6 +320,19 @@ func TestSliceFuncs(t *testing.T) {
 		convey.So(es.Join(""), convey.ShouldEqual, "EEE")
 	})
 
+	convey.Convey("Reverse", t, func() {
+		s.Clear() // empty
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "")
+		s.AppendAll("D", "E", "A") // odd
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "AED")
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F") // even
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "FEEBDAED")
+	})
+
 	var result string
 	convey.Convey("Stack Ops", t, func() {
 		s.Clear()
@@ -385,6 +399,19 @@ func TestSliceSearch(t *testing.T) {
 			return v >= 2 // looking for first index of "2"
 		})
 		convey.So(i, convey.ShouldEqual, 1) // should be the second element
+	})
+}
+
+// Test for methods that take functions
+func TestMapReduce(t *testing.T) {
+	convey.Convey("Reduce", t, func() {
+		s := NewSlice()
+		s.AppendAll(1, 2, 3, 4, 5)
+		// Example "Sum" reduction (starting at 0 and adding all values)
+		val := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
+			return reduction.(int) + elem.(int)
+		})
+		convey.So(val.(int), convey.ShouldEqual, 15)
 	})
 }
 
