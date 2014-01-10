@@ -256,18 +256,19 @@ func TestSlice(t *testing.T) {
 		convey.So(s.Join(""), convey.ShouldEqual, "FEEBDAED")
 	})
 
-	var result string
 	convey.Convey("Stack Ops", t, func() {
+		var iresult string
+
 		s.Clear()
-		convey.So(func() { s.Peek(&result) }, convey.ShouldPanic)
+		convey.So(func() { s.Peek(&iresult) }, convey.ShouldPanic)
 		s.Push("A")
 		s.Push("B")
 		convey.So(s.Join(""), convey.ShouldEqual, "AB")
-		s.Peek(&result)
-		convey.So(result, convey.ShouldEqual, "B")
+		s.Peek(&iresult)
+		convey.So(iresult, convey.ShouldEqual, "B")
 		convey.So(s.Join(""), convey.ShouldEqual, "AB")
-		s.Pop(&result)
-		convey.So(result, convey.ShouldEqual, "B")
+		s.Pop(&iresult)
+		convey.So(iresult, convey.ShouldEqual, "B")
 		convey.So(s.Join(""), convey.ShouldEqual, "A")
 	})
 }
