@@ -5,17 +5,20 @@ The collections provides many powerful methods, some taking functions, making fo
 
 Here is a small example covering only a few of the features:
 
+```go
     s := NewSlice()
     s.Append("_")
     s.AppendAll("A", "B", "Z", "J")
     var val string
-    s.Get(2, &val)
-    log.Print(s.ContainsAny("K", "Z"))
+    s.Get(2, &val)            // Extract the element at index 2 into val (int)
+    log.Print(s.ContainsAny("K", "Z")) // true
     s.Clear()
     s.AppendAll(1,2,3,4,5,6)
+    // Example of calculating the sum using Reduce()
     val := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
       return reduction.(int) + elem.(int)
     })
+```
 
 **What does it do**
 
@@ -24,11 +27,11 @@ They are feature full and mostly modeled against the Fantom [List](http://fantom
 
 **Docs & Examples**
 
-Gollections has some detailed Godocs:
+Gollections have some detailed Godocs:
 
 [http://godoc.org/github.com/tcolar/gollections](http://godoc.org/github.com/tcolar/gollections)
 
-Also even more details are available as unit tests:
+You will find some examples here :
 
 [http://godoc.org/github.com/tcolar/gollections#example-Slice](http://godoc.org/github.com/tcolar/gollections#example-Slice)
 

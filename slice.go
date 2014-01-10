@@ -456,7 +456,7 @@ func (s *Slice) String() string {
 }
 
 // Swap 2 elements (used as impl of sort.Interface)
-// Return an error if the indexes are out of bounds
+// Panics if the indexes are out of bounds
 func (s *Slice) Swap(a, b int) {
 	var err error
 	if a, err = s.handleIndex(a); err != nil {
