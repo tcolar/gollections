@@ -441,8 +441,6 @@ func BenchmarkSliceTo(b *testing.B) {
 func testSlice() *Slice {
 	s := NewSlice()
 	s.AppendAll(1, 2, 3)
-	s.Append(7)
-	s.Append(9)
-	s.Append(15)
+	s.Append(7).Append(9).Append(15)
 	return s
 }

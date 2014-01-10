@@ -59,19 +59,25 @@ func (s *Slice) Any(f func(interface{}) bool) bool {
 	return false
 }
 
-// Append a single value
-func (s *Slice) Append(elem interface{}) {
+// Append a single value (in place)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Append(elem interface{}) *Slice {
 	s.slice = append(s.slice, elem)
+	return s
 }
 
-// Append several values
-func (s *Slice) AppendAll(elems ...interface{}) {
+// Append several values (in place)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) AppendAll(elems ...interface{}) *Slice {
 	s.slice = append(s.slice, elems...)
+	return s
 }
 
 // Append another Slice to this slice
-func (s *Slice) AppendSlice(slice *Slice) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) AppendSlice(slice *Slice) *Slice {
 	s.slice = append(s.slice, slice.slice...)
+	return s
 }
 
 // Current slice capacity
@@ -80,9 +86,11 @@ func (s *Slice) Cap() int {
 }
 
 // Clear (empty) the list
-func (s *Slice) Clear() {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Clear() *Slice {
 	// Note: A nil slice in go is valid and can then be used just as if empty
 	s.slice = nil
+	return s
 }
 
 // Create and return a clone of this slice
@@ -108,7 +116,7 @@ func (s *Slice) CloneRange(from, to int) *Slice {
 }
 
 // Does the slice contain the given element (by equality)
-// Note, this uses simple iteration, use sort methods if meeding more performance
+// Note, this uses simple iteration, use sort methods if needing more performance
 func (s *Slice) Contains(elem interface{}) bool {
 	return s.IndexOf(elem) != -1
 }
@@ -141,7 +149,7 @@ func (s *Slice) Each(f func(int, interface{}) (stop bool)) {
 
 // Apply the function to the slice range
 // From and To are both inclusive
-// if from is < to it will be called in reversed order
+// if from is < to it will iterate in reversed order
 // If the function returns true (stop), iteration will stop
 func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
 	var err error
@@ -151,7 +159,7 @@ func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
 	if to, err = s.handleIndex(to); err != nil {
 		panic(err.Error())
 	}
-	// Figure if we are to step forward or backwars
+	// Figure if we are to step forward or backwards
 	step := 1
 	steps := to - from
 	if from > to {
@@ -159,7 +167,7 @@ func (s *Slice) EachRange(from, to int, f func(int, interface{}) (stop bool)) {
 		steps = -steps
 	}
 	var stop bool
-	// Process the each
+	// Iterate
 	for i := 0; i != steps+1; i++ {
 		stop = f(from, s.slice[from])
 		if stop {
@@ -175,11 +183,13 @@ func (s *Slice) Eachr(f func(int, interface{}) (stop bool)) {
 	s.EachRange(len(s.slice)-1, 0, f)
 }
 
-// Fill(append to) the slice with 'count' times the 'elem' value
-func (s *Slice) Fill(elem interface{}, count int) {
+// Fill(append to) the slice with 'count' times the 'elem' value (in place)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Fill(elem interface{}, count int) *Slice {
 	for i := 0; i != count; i++ {
 		s.Append(elem)
 	}
+	return s
 }
 
 // Apply a function to find an element in the slice (iteratively)
@@ -241,7 +251,8 @@ func (s *Slice) IndexOf(elem interface{}) int {
 
 // Insert the element before index idx
 // Can use negative index
-func (s *Slice) Insert(idx int, elem interface{}) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Insert(idx int, elem interface{}) *Slice {
 	var err error
 	if idx, err = s.handleIndex(idx); err != nil {
 		panic(err.Error())
@@ -249,11 +260,13 @@ func (s *Slice) Insert(idx int, elem interface{}) {
 	s.slice = append(s.slice, 0)
 	copy(s.slice[idx+1:], s.slice[idx:])
 	s.slice[idx] = elem
+	return s
 }
 
 // Insert All the element before index idx
 // Can use negative index
-func (s *Slice) InsertAll(idx int, elems ...interface{}) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) InsertAll(idx int, elems ...interface{}) *Slice {
 	var err error
 	if idx, err = s.handleIndex(idx); err != nil {
 		panic(err.Error())
@@ -264,12 +277,15 @@ func (s *Slice) InsertAll(idx int, elems ...interface{}) {
 	copy(s.slice[idx+len(elems):], s.slice[idx:])
 	// fill in the space with the elements to be inserted
 	copy(s.slice[idx:], elems)
+	return s
 }
 
 // Insert All the element of the slice before index idx
 // Can use negative index
-func (s *Slice) InsertSlice(idx int, slice *Slice) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) InsertSlice(idx int, slice *Slice) *Slice {
 	s.InsertAll(idx, slice.slice...)
+	return s
 }
 
 // Is this slice empty
@@ -387,39 +403,47 @@ func (s *Slice) Reduce(startVal interface{}, f func(reduction interface{}, index
 	return reduction
 }
 
-// Remove the element at the given index
-func (s *Slice) RemoveAt(idx int) {
+// Remove the element at the given index (in place)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) RemoveAt(idx int) *Slice {
 	copy(s.slice[idx:], s.slice[idx+1:]) // shift elements past index to the left
 	s.slice = s.slice[:len(s.slice)-1]   // lose last element
+	return s
 }
 
-// Remove the first element found by value equality (found by IndexFrom method)
-func (s *Slice) RemoveElem(elem interface{}) {
+// Remove, in place, the first element found by value equality (found by IndexFrom method)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) RemoveElem(elem interface{}) *Slice {
 	idx := s.IndexOf(elem)
 	if idx >= 0 {
 		s.RemoveAt(idx)
 	}
+	return s
 }
 
-// Remove all elements by value equality (using Equals function)
-func (s *Slice) RemoveElems(elem interface{}) {
+// Remove, in place, all elements by value equality (using Equals function)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) RemoveElems(elem interface{}) *Slice {
 	s.RemoveFunc(func(idx int, e interface{}) bool {
 		return s.Equals(elem, e)
 	})
+	return s
 }
 
-// Remove the elements that match the function (where the function return true)
-func (s *Slice) RemoveFunc(f func(idx int, elem interface{}) bool) {
+// Remove, in place, the elements that match the function (where the function return true)
+func (s *Slice) RemoveFunc(f func(idx int, elem interface{}) bool) *Slice {
 	for i := 0; i < len(s.slice); i++ {
 		if f(i, s.slice[i]) {
 			s.RemoveAt(i)
 			i--
 		}
 	}
+	return s
 }
 
 // Remove the elements within the given index range
-func (s *Slice) RemoveRange(from, to int) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) RemoveRange(from, to int) *Slice {
 	var err error
 	if from, err = s.handleIndex(from); err != nil {
 		panic(err.Error())
@@ -429,10 +453,12 @@ func (s *Slice) RemoveRange(from, to int) {
 	}
 	copy(s.slice[from:], s.slice[to:])         // shift elements
 	s.slice = s.slice[:len(s.slice)-(to-from)] // lose last elements
+	return s
 }
 
-// Reverse the slice in place (first element becomes last etc...)
-func (s *Slice) Reverse() {
+// Reverse in place, the slice in place (first element becomes last etc...)
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Reverse() *Slice {
 	start := 0
 	end := len(s.slice) - 1
 	for end > start { // Otherwise 0 or 1 element left, nothing to swap
@@ -440,11 +466,14 @@ func (s *Slice) Reverse() {
 		end--
 		start++
 	}
+	return s
 }
 
 // Set the element at the given index
-func (s *Slice) Set(idx int, elem interface{}) {
+// Return the slice pointer to allow method chaining.
+func (s *Slice) Set(idx int, elem interface{}) *Slice {
 	s.slice[idx] = elem
+	return s
 }
 
 // Returns pointer to the raw underlying slice ([]interface{})

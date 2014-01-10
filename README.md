@@ -13,8 +13,7 @@ Here is a small example covering only a few of the features:
     s.Get(2, &val)             // Extract the element at index 2 (Z) into val (int)
     s.Get(-3, &val)            // Extract the second to last element (B) into val
     log.Print(s.ContainsAny("K", "Z")) // true
-    s.Clear()
-    s.AppendAll(1,2,3,4,5,6)
+    s.Clear().AppendAll(1,2,3,4,5,6)   // can chain most calls
     // Example of calculating the sum using Reduce()
     sum := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
       return reduction.(int) + elem.(int)
