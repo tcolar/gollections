@@ -10,7 +10,7 @@ Here is a small example covering only a few of the features:
     s.Append("_")
     s.AppendAll("A", "B", "Z", "J")
     var val string
-    s.Get(2, &val)             // Extract the element at index 2 (Z) into val (int)
+    s.Get(2, &val)             // Extract the element at index 2 (Z) into val (string)
     s.Get(-3, &val)            // Extract the second to last element (B) into val
     log.Print(s.ContainsAny("K", "Z")) // true
     s.Clear().AppendAll(1,2,3,4,5,6)   // can chain most calls
@@ -18,9 +18,9 @@ Here is a small example covering only a few of the features:
     sum := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
       return reduction.(int) + elem.(int)
     })
-    s.Reverse()                       // Reverse (in place)
-    log.Print(s.Join(","))            // "6,5,4,3,2,1"
-    s.Pop(&val)                       // Pop the last element (1)
+    s.Reverse()                        // Reverse (in place)
+    log.Print(s.Join(","))             // "6,5,4,3,2,1"
+    s.Pop(&val)                        // Pop the last element (1) into val
 ```
 
 **What does it do**
@@ -30,7 +30,7 @@ They are feature full and mostly modeled against the Fantom [List](http://fantom
 
 **Docs & Examples**
 
-Gollections have some detailed Godocs:
+Gollections has some detailed Godocs:
 
 [http://godoc.org/github.com/tcolar/gollections](http://godoc.org/github.com/tcolar/gollections)
 
@@ -58,8 +58,8 @@ How does it work
 ----------------
 
 The custom collections rely on slice of "generic" elements ([]interface{} in Go).
-Obviously that means that we lose some type safety, however it is mitigated by
-the fact that you can retrieve elements into a srongly typed variable pointer.
+Obviously that means that we lose some type safety, however it is mitigated a bit by
+the fact that you can retrieve elements into a strongly typed variable pointer.
 
 For example
 ```Go
@@ -74,8 +74,8 @@ value back into a strongly typed variable(int) that the compiler can watch for u
 
 **Performance**
 
-Overall the performance is actually better than expected.
-Getting values from the generic slice into a type variable as an extra cost due to the use of reflection,
+Overall the performance is obviousyl slower than a native slice, yet not terrible. (~5x depending of the operations.)
+Getting values from the generic slice into a typed variable as an extra cost due to the use of reflection,
 however so far benchmarking indicates it's not unreasonable. (More becnhmarking TBD)
 
 I did put extra attention trying to make all the slice operations as efficient as I could.

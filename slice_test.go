@@ -418,13 +418,24 @@ func TestReduce(t *testing.T) {
 
 // #################### BENCHMARKS ############################################
 
-func BenchmarkSlice(b *testing.B) {
+func BenchmarkGenericSlice(b *testing.B) {
 	s := NewSlice()
-	var result int
+	var result thingy
 	for i := 0; i < b.N; i++ {
-		s.Append(i)
+		s.Append(thingy{val: i})
 		s.Last(&result)
 	}
+	_ = result
+}
+
+func BenchmarkNativeSlice(b *testing.B) {
+	s := []thingy{}
+	var result thingy
+	for i := 0; i < b.N; i++ {
+		s = append(s, thingy{val: i})
+		result = s[len(s)-1]
+	}
+	_ = result
 }
 
 func BenchmarkSliceTo(b *testing.B) {
@@ -437,6 +448,10 @@ func BenchmarkSliceTo(b *testing.B) {
 }
 
 // #################### TESTS DATA ############################################
+
+type thingy struct {
+	val int
+}
 
 func testSlice() *Slice {
 	s := NewSlice()
