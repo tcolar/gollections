@@ -85,6 +85,9 @@ One operation that is very costly is To() which "exports" the slice contents int
 (native go slice), that requires the use of reflection and copy of each elements one at a time.
 So it's best to not use it at all or only use it as the very last step once all operations are completed.
 
+Obviously it would have been best if such functions where "baked in" as they could leverage the builtin
+parametric types that are not unavailable in the user space.
+
 
 
 
