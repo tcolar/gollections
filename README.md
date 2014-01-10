@@ -1,4 +1,4 @@
-Gollections provides some full feature Generic Go(Golang) collections
+"Generic" Go(Golang) collections
 =================================
 
 The collections provides many powerful methods, some taking functions, making for productive programming.
@@ -17,11 +17,13 @@ Here is a small example covering only a few of the features:
       return reduction.(int) + elem.(int)
     })
 
-** What does it do **
+**What does it do**
+
 It provides "generic" Slice and Map elements for go.
 They are feature full and mostly modeled against the Fantom [List](http://fantom.org/doc/sys/List.html) and Map implementations.
 
-** Docs & Examples **
+**Docs & Examples**
+
 Gollections has some detailed Godocs:
 
 [http://godoc.org/github.com/tcolar/gollections](http://godoc.org/github.com/tcolar/gollections)
