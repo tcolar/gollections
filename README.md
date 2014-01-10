@@ -10,7 +10,8 @@ Here is a small example covering only a few of the features:
     s.Append("_")
     s.AppendAll("A", "B", "Z", "J")
     var val string
-    s.Get(2, &val)            // Extract the element at index 2 into val (int)
+    s.Get(2, &val)             // Extract the element at index 2 into val (int)
+    s.Get(-2, &val)            // Extract the second to ast element
     log.Print(s.ContainsAny("K", "Z")) // true
     s.Clear()
     s.AppendAll(1,2,3,4,5,6)
@@ -19,6 +20,7 @@ Here is a small example covering only a few of the features:
       return reduction.(int) + elem.(int)
     })
     log.Print(s.Join(","))
+    s.Pop(&val)                       // Pop the last element
 ```
 
 **What does it do**
