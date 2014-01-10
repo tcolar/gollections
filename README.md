@@ -75,7 +75,7 @@ value back into a strongly typed variable(int) that the compiler can watch for u
 **Performance**
 
 Overall the performance is obviousyl slower than a native slice, yet not terrible. (~5x depending of the operations.)
-Getting values from the generic slice into a typed variable as an extra cost due to the use of reflection,
+Getting values from the generic slice into a typed variable has an extra cost due to the use of reflection,
 however so far benchmarking indicates it's not unreasonable. (More becnhmarking TBD)
 
 I did put extra attention trying to make all the slice operations as efficient as I could.
@@ -85,7 +85,7 @@ One operation that is very costly is To() which "exports" the slice contents int
 (native go slice), that requires the use of reflection and copy of each elements one at a time.
 So it's best to not use it at all or only use it as the very last step once all operations are completed.
 
-Obviously it would have been best if such functions where "baked in" as they could leverage the builtin
+Obviously it would have been best if such collections/functions where "baked in" as they could leverage the builtin
 parametric types that are not unavailable in the user space.
 
 
