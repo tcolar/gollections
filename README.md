@@ -15,9 +15,10 @@ Here is a small example covering only a few of the features:
     s.Clear()
     s.AppendAll(1,2,3,4,5,6)
     // Example of calculating the sum using Reduce()
-    val := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
+    sum := s.Reduce(0, func(reduction interface{}, i int, elem interface{}) interface{} {
       return reduction.(int) + elem.(int)
     })
+    log.Print(s.Join(","))
 ```
 
 **What does it do**
