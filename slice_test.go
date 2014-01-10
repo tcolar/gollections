@@ -242,6 +242,34 @@ func TestSlice(t *testing.T) {
 		convey.So(results[0], convey.ShouldEqual, 2)
 		convey.So(results[2], convey.ShouldEqual, 4)
 	})
+
+	convey.Convey("Reverse", t, func() {
+		s.Clear() // empty
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "")
+		s.AppendAll("D", "E", "A") // odd
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "AED")
+		s.Clear()
+		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F") // even
+		s.Reverse()
+		convey.So(s.Join(""), convey.ShouldEqual, "FEEBDAED")
+	})
+
+	var result string
+	convey.Convey("Stack Ops", t, func() {
+		s.Clear()
+		convey.So(func() { s.Peek(&result) }, convey.ShouldPanic)
+		s.Push("A")
+		s.Push("B")
+		convey.So(s.Join(""), convey.ShouldEqual, "AB")
+		s.Peek(&result)
+		convey.So(result, convey.ShouldEqual, "B")
+		convey.So(s.Join(""), convey.ShouldEqual, "AB")
+		s.Pop(&result)
+		convey.So(result, convey.ShouldEqual, "B")
+		convey.So(s.Join(""), convey.ShouldEqual, "A")
+	})
 }
 
 // Test for methods that take functions
@@ -319,34 +347,6 @@ func TestSliceFuncs(t *testing.T) {
 		})
 		convey.So(es.Join(""), convey.ShouldEqual, "EEE")
 	})
-
-	convey.Convey("Reverse", t, func() {
-		s.Clear() // empty
-		s.Reverse()
-		convey.So(s.Join(""), convey.ShouldEqual, "")
-		s.AppendAll("D", "E", "A") // odd
-		s.Reverse()
-		convey.So(s.Join(""), convey.ShouldEqual, "AED")
-		s.Clear()
-		s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F") // even
-		s.Reverse()
-		convey.So(s.Join(""), convey.ShouldEqual, "FEEBDAED")
-	})
-
-	var result string
-	convey.Convey("Stack Ops", t, func() {
-		s.Clear()
-		convey.So(func() { s.Peek(&result) }, convey.ShouldPanic)
-		s.Push("A")
-		s.Push("B")
-		convey.So(s.Join(""), convey.ShouldEqual, "AB")
-		s.Peek(&result)
-		convey.So(result, convey.ShouldEqual, "B")
-		convey.So(s.Join(""), convey.ShouldEqual, "AB")
-		s.Pop(&result)
-		convey.So(result, convey.ShouldEqual, "B")
-		convey.So(s.Join(""), convey.ShouldEqual, "A")
-	})
 }
 
 // Example compareInt Compare implementation to be used by search & min max
@@ -402,8 +402,8 @@ func TestSliceSearch(t *testing.T) {
 	})
 }
 
-// Test for methods that take functions
-func TestMapReduce(t *testing.T) {
+// Test for reduce
+func TestReduce(t *testing.T) {
 	convey.Convey("Reduce", t, func() {
 		s := NewSlice()
 		s.AppendAll(1, 2, 3, 4, 5)
