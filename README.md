@@ -10,8 +10,8 @@ Here is a small example covering only a few of the features:
     s.Append("_")
     s.AppendAll("A", "B", "Z", "J")
     var val string
-    s.Get(2, &val)             // Extract the element at index 2 into val (int)
-    s.Get(-2, &val)            // Extract the second to last element
+    s.Get(2, &val)             // Extract the element at index 2 (Z) into val (int)
+    s.Get(-3, &val)            // Extract the second to last element (B) into val
     log.Print(s.ContainsAny("K", "Z")) // true
     s.Clear()
     s.AppendAll(1,2,3,4,5,6)
@@ -46,4 +46,47 @@ Even more details can be found in the detailed unit tests:
 Installing
 ----------
 go get github.com/tcolar/gollections
+
+Why
+----
+I'm actually not much of a generics lover, I never liked the way they where implemented in Java for example.
+
+I've used Fantom a lot and while it has no generics either it provides very powerful collections that make you rarely miss them.
+
+On the other Hand Go has neither generics nor collections with a lot of features, so this is an attempt to fill hat gap.
+
+How does it work
+----------------
+
+The custom collections rely on slice of "generic" elements ([]interface{} in Go).
+Obviously that means that we lose some type safety, however it is mitigated by
+the fact that you can retrieve elements into a srongly typed variable pointer.
+
+For example
+```Go
+    s := NewSlice()
+    s.AppendAll(5,6,7)
+    var myInt int
+    s.Get(1, &myint) // now myInt is a strongly typed int with the value 6
+```
+
+A benefit of this trick is that we do regain some type safety since we are getting the
+value back into a strongly typed variable(int) the compiler can watch for us from then on.
+
+**Performance**
+
+Overall the performance is actually pretty decent for the most part.
+Getting values from the generic slice into a type varable as an extra cost due to the use of reflection,
+however so far benchmarking indicates it's not unreasonable. (More becnhmarking TBD)
+
+I did put extra attention trying to make all the append/insert/remove operations as efficient as I could.
+Most operations are done in place unless otherwise noted.
+
+One operation that is very costly is To() which "exports" the slice contents into a strongly typed slice
+(native go slice), that requires the use of reflection and copy of the element one at a time.
+So the idea is to either not use it at all or only use it as the very last step once all operations are completed.
+
+
+
+
 
