@@ -1,5 +1,7 @@
 // History: Jan 04 14 Thibaut Colar Creation
 
+// Package gollections provides some"Generic" collections for go.
+// Those collections are feature rich with many useful methods.
 package gollections
 
 import (
