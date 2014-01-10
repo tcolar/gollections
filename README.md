@@ -47,13 +47,13 @@ Installing
 ----------
 go get github.com/tcolar/gollections
 
-Why
+Why ?
 ----
 I'm actually not much of a generics lover, I never liked the way they where implemented in Java for example.
 
 I've used Fantom a lot and while it has no generics either it provides very powerful collections that make you rarely miss them.
 
-On the other Hand Go has neither generics nor collections with a lot of features, so this is an attempt to fill hat gap.
+On the other Hand Go has neither generics nor collections with a lot of features, so this is an attempt to fill that gap.
 
 How does it work
 ----------------
@@ -70,21 +70,21 @@ For example
     s.Get(1, &myint) // now myInt is a strongly typed int with the value 6
 ```
 
-A benefit of this trick is that we do regain some type safety since we are getting the
-value back into a strongly typed variable(int) the compiler can watch for us from then on.
+A benefit of this "trick" is that we do regain some type safety since we are getting the
+value back into a strongly typed variable(int) that the compiler can watch for us from then on.
 
 **Performance**
 
-Overall the performance is actually pretty decent for the most part.
-Getting values from the generic slice into a type varable as an extra cost due to the use of reflection,
+Overall the performance is actually better than expected.
+Getting values from the generic slice into a type variable as an extra cost due to the use of reflection,
 however so far benchmarking indicates it's not unreasonable. (More becnhmarking TBD)
 
-I did put extra attention trying to make all the append/insert/remove operations as efficient as I could.
-Most operations are done in place unless otherwise noted.
+I did put extra attention trying to make all the slice operations as efficient as I could.
+Most operations are done in place unless otherwise noted and try not to allocate any unnecessay space.
 
 One operation that is very costly is To() which "exports" the slice contents into a strongly typed slice
-(native go slice), that requires the use of reflection and copy of the element one at a time.
-So the idea is to either not use it at all or only use it as the very last step once all operations are completed.
+(native go slice), that requires the use of reflection and copy of each elements one at a time.
+So it's best to not use it at all or only use it as the very last step once all operations are completed.
 
 
 
