@@ -74,7 +74,9 @@ value back into a strongly typed variable(int) that the compiler can watch for u
 
 **Performance**
 
-Overall the performance is obviousyl slower than a native slice, yet not terrible. (~5x depending of the operations.)
+Overall the performance is obviousyly slower than a native slice, yet not terrible.
+It can be around 5x slower than a native slice, which is not negligeable, yet still faster than many other languages.
+
 Getting values from the generic slice into a typed variable has an extra cost due to the use of reflection,
 however so far benchmarking indicates it's not unreasonable. (More becnhmarking TBD)
 
