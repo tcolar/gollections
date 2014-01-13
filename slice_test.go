@@ -363,6 +363,18 @@ var compareInt = func(a, b interface{}) int {
 	return -1
 }
 
+func TestGetVal(t *testing.T) {
+	s := testSlice()
+	s.Clear()
+	s.AppendAll("D", "E", "A", "D", "B", "E", "E", "F")
+	var result string
+	val := PtrToVal(&result)
+	// GetVal can be more efficient when called repeatedly
+	// since we only make the reflection call once (PtrToVal)
+	s.GetVal(2, val)
+	convey.So(result, convey.ShouldEqual, "A")
+}
+
 func TestSliceSearch(t *testing.T) {
 
 	// min / max
@@ -424,6 +436,19 @@ func BenchmarkGenericSlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		s.Append(thingy{val: i})
 		s.Last(&result)
+	}
+	_ = result
+}
+
+// See how much saving on the reflection call saves us
+// Seem to save up to 20%
+func BenchmarkGenericSliceByVal(b *testing.B) {
+	s := NewSlice()
+	var result thingy
+	v := PtrToVal(&result)
+	for i := 0; i < b.N; i++ {
+		s.Append(thingy{val: i})
+		s.GetVal(-1, v)
 	}
 	_ = result
 }

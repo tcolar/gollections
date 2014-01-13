@@ -229,12 +229,19 @@ func (s *Slice) First(ptr interface{}) {
 // If idx is negative then idx element from the end -> slice[len(slice)+idx]
 // ie Get(-1) would return the last element
 func (s *Slice) Get(idx int, ptr interface{}) {
+	s.GetVal(idx, PtrToVal(ptr))
+}
+
+// Set value of ptr(Ptr is the Value of a pointer to the var to set) to slice[idx]
+// When called repeatedly GetVal() can be ~30% faster than Get
+// since it saves repeating the reflection call.
+// Note: See PtrToVal()
+func (s *Slice) GetVal(idx int, ptrVal reflect.Value) {
 	var err error
 	if idx, err = s.handleIndex(idx); err != nil {
 		panic(err.Error())
 	}
-	obj := reflect.ValueOf(ptr).Elem()
-	obj.Set(reflect.Indirect(s.sliceValPtr).Index(idx).Elem())
+	ptrVal.Set(reflect.Indirect(s.sliceValPtr).Index(idx).Elem())
 }
 
 // Return the (lowest) index of given element (using Equals() method)
@@ -547,4 +554,10 @@ func (s *Slice) handleIndex(idx int) (int, error) {
 		return idx, errors.New(fmt.Sprintf("Invalid slice index: %d", idx))
 	}
 	return idx, nil
+}
+
+// Get the reflect.Value of the element pointed to by ptr
+// Will panic if tr is not a pointer
+func PtrToVal(ptr interface{}) reflect.Value {
+	return reflect.ValueOf(ptr).Elem()
 }
