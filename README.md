@@ -11,7 +11,7 @@ Here is a small example covering only a few of the features:
     s.AppendAll("A", "B", "Z", "J")
     var val string
     s.Get(2, &val)             // Extract the element at index 2 (Z) into val (string)
-    s.Get(-3, &val)            // Extract the second to last element (B) into val
+    s.Get(-3, &val)            // Extract the third to last element (B) into val
     log.Print(s.ContainsAny("K", "Z")) // true
     s.Clear().AppendAll(1,2,3,4,5,6)   // can chain most calls
     // Example of calculating the sum using Reduce()
